@@ -28,13 +28,16 @@ try:
     from openalea.core import logger
     myLogger = logger.get_logger("openalea.visualea.splitterui")
     logger.connect_loggers_to_handlers(myLogger, logger.get_handler_names())
+
     def log(level, msg):
         myLogger.log(level, msg)
 except:
     def log(level, msg):
         print "debug messsage", level, msg
 
+
 class RubberBandScrollArea(qt.QtGui.QScrollArea):
+
     """ A customized QScrollArea that can be scrolled
     with a middle mouse drag in a blank area.
     Scrolling can be locked to X or Y. (default is not locked)
@@ -89,7 +92,7 @@ class RubberBandScrollArea(qt.QtGui.QScrollArea):
             self.__rubberband = True
             self.__oldMousePos = e.pos()
         else:
-            qt.QtGui.QScrollArea.mousePressEvent(self,e)
+            qt.QtGui.QScrollArea.mousePressEvent(self, e)
 
     def mouseMoveEvent(self, e):
         """Reimplemented to scroll the window in rubberband mode.
@@ -107,7 +110,7 @@ class RubberBandScrollArea(qt.QtGui.QScrollArea):
                 sb.setValue(sb.value() - df.y())
             self.__oldMousePos = pos
         else:
-            qt.QtGui.QScrollArea.mousePressEvent(self,e)
+            qt.QtGui.QScrollArea.mousePressEvent(self, e)
 
     def mouseReleaseEvent(self, e):
         """Reimplemented to catch the mouse press button and deactivate
@@ -116,7 +119,7 @@ class RubberBandScrollArea(qt.QtGui.QScrollArea):
             self.__rubberband = False
             self.__rubberband = None
         else:
-            qt.QtGui.QScrollArea.mousePressEvent(self,e)
+            qt.QtGui.QScrollArea.mousePressEvent(self, e)
 
     def resizeEvent(self, event):
         wid = self.widget()
@@ -125,9 +128,11 @@ class RubberBandScrollArea(qt.QtGui.QScrollArea):
         qt.QtGui.QScrollArea.resizeEvent(self, event)
 
 
-
 from collections import deque
+
+
 class BinaryTree(object):
+
     """A quirky binary tree that only implements
     node splitting methods. It also implements a
     visitable Breadth First iterating traversal.
@@ -146,31 +151,43 @@ class BinaryTree(object):
     # Exception definitions - Exception definitions - Exception definitions #
     #########################################################################
     class BadIdException(Exception):
+
         """Raised when you referred to an id that doesn't have a reason
         to exist in the place you looked for it, eg: if an id doesn't have
         children and you ask for its children, you'll get this. It doesn't
         mean that ID doesn't exist in the Tree
         """
+
         def __init__(self, vid):
-            Exception.__init__(self, "Bad node id: "+str(vid))
+            Exception.__init__(self, "Bad node id: " + str(vid))
+
     class NonAnteTerminalException(Exception):
+
         """Raised when trying to collapse a node whose children themselves have children."""
+
         def __init__(self, vid):
-            Exception.__init__(self, "Can only collapse nodes terminal-1: "+str(vid))
+            Exception.__init__(self, "Can only collapse nodes terminal-1: " + str(vid))
+
     class ParentCompleteException(Exception):
+
         """You should never see this one. Raised if trying to add a child to a node
         that already has two children. This could just ruin the binary concept eh!"""
+
         def __init__(self, vid):
-            Exception.__init__(self, "Parent already complete: "+str(vid))
+            Exception.__init__(self, "Parent already complete: " + str(vid))
+
     class PropertyException(Exception):
+
         """Raised when a node doesn't have the property you requested"""
+
         def __init__(self, vid, key):
-            Exception.__init__(self, "No %s for node %d"%(str(key), vid))
+            Exception.__init__(self, "No %s for node %d" % (str(key), vid))
     #########################################################################
     # /end Exception definitions - Exception definitions - Exception def... #
     #########################################################################
 
     class PrintingVisitor(object):
+
         """ A simple visitor to print node ids as is goes by visiting
 
         :Examples:
@@ -179,29 +196,26 @@ class BinaryTree(object):
         >>> visitor= BinaryTree.PrintingVisitor()
         >>> g.visit_i_breadth_first(visitor)
         """
+
         def visit(self, vid):
             print vid
-            return False, False#don't ignore first or second child
-
-
-
+            return False, False  # don't ignore first or second child
 
     def __init__(self):
         """Construct a BinaryTree"""
-        self._toChildren = {}#toCh #: map parent ids to two child ids
-        self._toParents  = {}#toPar #: map childid to parent id
-        self._properties = {}#prop #: map vid to a dictionnary of string->val
-        self.__root = 0 #: our starting point
-        self.__vid  = 1 #: the first vertex that will be added. Gets incremented
-        # # -- Construct the root node --
+        self._toChildren = {}  # toCh #: map parent ids to two child ids
+        self._toParents = {}  # toPar #: map childid to parent id
+        self._properties = {}  # prop #: map vid to a dictionnary of string->val
+        self.__root = 0  # : our starting point
+        self.__vid = 1  # : the first vertex that will be added. Gets incremented
+        # -- Construct the root node --
         self._properties[0] = {}
         self._toParents[0] = None
 
     def toString(self, props=[]):
-        filteredProps = dict( (vid, dict((k,v) for k, v in di.iteritems() if k in props) )\
-                              for vid, di in self._properties.iteritems() )
-        return repr(self._toChildren) +", " + repr(self._toParents) + ", " + repr(filteredProps)
-
+        filteredProps = dict((vid, dict((k, v) for k, v in di.iteritems() if k in props))
+                             for vid, di in self._properties.iteritems())
+        return repr(self._toChildren) + ", " + repr(self._toParents) + ", " + repr(filteredProps)
 
     @classmethod
     def fromString(cls, rep):
@@ -212,15 +226,14 @@ class BinaryTree(object):
 
         g = BinaryTree()
         toCh, toPar, props = tup
-        g.__vid = max(props.iterkeys())+1
+        g.__vid = max(props.iterkeys()) + 1
         g._toChildren = toCh.copy()
-        g._toParents  = toPar.copy()
-        g._properties  = props.copy()
+        g._toParents = toPar.copy()
+        g._properties = props.copy()
         return g, tup
 
     def __contains__(self, vid):
         return vid in self._properties
-
 
     def parent(self, vid):
         """Returns the parent of vid.
@@ -267,7 +280,7 @@ class BinaryTree(object):
             raise BinaryTree.BadIdException(vid)
         par = self._toParents[vid]
         chds = self.children(par)
-        return chds.index(vid)==0
+        return chds.index(vid) == 0
 
     def split_node(self, vid):
         """Add two children to vid and return their ids.
@@ -275,7 +288,7 @@ class BinaryTree(object):
         Raises BinaryTree.BadIdException if vid is not in the graph."""
         if vid not in self._properties:
             raise BinaryTree.BadIdException(vid)
-        fid, sid = self.__vid, self.__vid+1
+        fid, sid = self.__vid, self.__vid + 1
         self.__vid += 2
         self.__new_node(fid, vid)
         self.__new_node(sid, vid)
@@ -299,16 +312,16 @@ class BinaryTree(object):
         """PRIVATE. Create a new node with id  `vid` and attached to `parent`.
 
         Raises BinaryTree.ParentCompleteException if parent already has two children"""
-        chen = self._toChildren.setdefault(parent,[])
+        chen = self._toChildren.setdefault(parent, [])
         if len(chen) > 1:
             raise BinaryTree.ParentCompleteException(parent)
         chen.append(vid)
-        self._toParents [vid] = parent
+        self._toParents[vid] = parent
         self._properties[vid] = {}
 
     def __del_node(self, vid, parent):
         """PRIVATE. Remove a node with id  `vid` and detach it from `parent`."""
-        chen = self._toChildren.setdefault(parent,[])
+        chen = self._toChildren.setdefault(parent, [])
         if len(chen) == 0:
             return
         chen.remove(vid)
@@ -340,7 +353,6 @@ class BinaryTree(object):
         if vid not in self._properties:
             raise BinaryTree.BadIdException(vid)
         return key in self._properties[vid]
-
 
     def get_property(self, vid, key):
         """Retreives property `key` from node `vid`.
@@ -385,7 +397,7 @@ class BinaryTree(object):
         """
         nodeStack = deque()
         nodeStack.appendleft(node)
-        while not len(nodeStack)==0:
+        while not len(nodeStack) == 0:
             currNode = nodeStack.pop()
             ignoreFirst, ignoreSecond = False, False
             if visitor != None:
@@ -397,9 +409,8 @@ class BinaryTree(object):
                 nodeStack.appendleft(sid)
 
 
-
-
 class DraggableWidget(object):
+
     """ A base class that implements the mechanism to drag a widget around.
     Use it as a mixin of QWidget derived  classes.
 
@@ -413,13 +424,14 @@ class DraggableWidget(object):
     All these attributes are reverted to False/None at the end
     of the drag (when user releases mouse button).
     """
+
     def __init__(self):
         """Contruct a DraggableWidget. Be sure to call this!"""
-        self._isMoving  = False
-        self._offset    = None
-        self._oldpos    = None
-        self._startpos  = None
-        self._hovered   = False
+        self._isMoving = False
+        self._offset = None
+        self._oldpos = None
+        self._startpos = None
+        self._hovered = False
         self.setAttribute(qt.QtCore.Qt.WA_DeleteOnClose)
         self.setAttribute(qt.QtCore.Qt.WA_Hover)
 
@@ -457,9 +469,9 @@ class DraggableWidget(object):
         if event.buttons() & qt.QtCore.Qt.LeftButton:
             self._isMoving = True
             # this is in local coordinates
-            self._offset   = event.pos() - self.contentsRect().topLeft()
+            self._offset = event.pos() - self.contentsRect().topLeft()
             # this is in global coordinates
-            self._oldpos   = event.pos() - self._offset + self.geometry().topLeft()
+            self._oldpos = event.pos() - self._offset + self.geometry().topLeft()
             self._startpos = event.pos() - self._offset + self.geometry().topLeft()
         else:
             qt.QtGui.QWidget.mousePressEvent(self, event)
@@ -467,7 +479,7 @@ class DraggableWidget(object):
     def mouseMoveEvent(self, event):
         if self._isMoving:
             geom = self.geometry()
-            #newPt is in parent coordinates
+            # newPt is in parent coordinates
             newPt = event.pos() - self._offset + geom.topLeft()
             geom, noChange = self._fixGeometry(newPt, geom)
             if not noChange:
@@ -479,20 +491,20 @@ class DraggableWidget(object):
     def mouseReleaseEvent(self, event):
         if event.buttons() & qt.QtCore.Qt.LeftButton:
             self._isMoving = False
-            self._offset   = None
-            self._offset   = None
+            self._offset = None
+            self._offset = None
             self._startpos = None
         else:
             qt.QtGui.QWidget.mouseReleaseEvent(self, event)
 
 
-
 class SplittableUI(qt.QtGui.QWidget):
+
     """A widget that tries to mimic the Blender UI.
     Each pane contains a settable widget."""
 
     __spacing__ = 4
-    __hspacing__ = __spacing__/2.0
+    __hspacing__ = __spacing__ / 2.0
 
     # used when serializing (toString) the layout
     # of the splitter to identify which properties
@@ -502,7 +514,6 @@ class SplittableUI(qt.QtGui.QWidget):
     widgetMenuRequest = qt.QtCore.Signal(qt.QtCore.QPoint, int)
     dragEnterEventTest = qt.QtCore.Signal(object, qt.QtGui.QDragEnterEvent)
     dropHandlerRequest = qt.QtCore.Signal(object, int, qt.QtGui.QDropEvent)
-
 
     def __init__(self, parent=None, content=None):
         """Contruct a SplittableUI.
@@ -520,7 +531,6 @@ class SplittableUI(qt.QtGui.QWidget):
         # -- initialising the pane at level 0 --
         self._geomCache[0] = self.contentsRect()
         self._install_child(0, content)
-
 
     def leaves(self):
         return self._g.leaves()
@@ -623,7 +633,7 @@ class SplittableUI(qt.QtGui.QWidget):
 
         # -- if the content is already is self, move it to the new vid --
         oldPaneId = self.hasContent(wid)
-        if oldPaneId>=0:
+        if oldPaneId >= 0:
             self.takeContentAt(oldPaneId, self)
 
         # -- get the old content --
@@ -665,10 +675,9 @@ class SplittableUI(qt.QtGui.QWidget):
 
     def hasContent(self, widget):
         for vid, prop in self._g._properties.iteritems():
-            if "widget" in prop and prop["widget"]==widget:
+            if "widget" in prop and prop["widget"] == widget:
                 return vid
         return -1
-
 
     #############
     # Internals #
@@ -723,7 +732,7 @@ class SplittableUI(qt.QtGui.QWidget):
         """Utility function to create the tear off widgets associated to pane `paneId`."""
         g = self._g
         tearOffs = SplittableUI.TearOff(g, paneId, self, bottom=True),\
-                   SplittableUI.TearOff(g, paneId, self, bottom=False)
+            SplittableUI.TearOff(g, paneId, self, bottom=False)
         g.set_property(paneId, "tearOffWidgets", tearOffs)
         for t in tearOffs:
             t.splitRequest.connect(self._onSplitRequest)
@@ -731,7 +740,7 @@ class SplittableUI(qt.QtGui.QWidget):
 
     def _uninstall_child(self, paneId):
         g = self._g
-        hasWid =  g.has_property(paneId, "widget")
+        hasWid = g.has_property(paneId, "widget")
         widget = g.pop_property(paneId, "widget") if hasWid else None
         self._geomCache.pop(paneId, None)
         self._remove_tearOffs(paneId)
@@ -762,7 +771,7 @@ class SplittableUI(qt.QtGui.QWidget):
             refVal = geom.width() if orientation == qt.QtCore.Qt.Horizontal else geom.height()
             sp = SplittableUI.__spacing__
             absAmount = amount * refVal
-            sticky = -1 if absAmount<=sp else (1 if absAmount>=(refVal-sp-1) else 0)
+            sticky = -1 if absAmount <= sp else (1 if absAmount >= (refVal - sp - 1) else 0)
         self._g.set_property(paneId, "sticky", sticky)
 
     def full_sticky_check(self):
@@ -771,7 +780,7 @@ class SplittableUI(qt.QtGui.QWidget):
         for paneId in leavesAncestors:
             if paneId == None:
                 continue
-            amount      = self._g.get_property(paneId, "amount")
+            amount = self._g.get_property(paneId, "amount")
             orientation = self._g.get_property(paneId, "splitDirection")
             self.__sticky_check(paneId, orientation, amount)
 
@@ -799,14 +808,14 @@ class SplittableUI(qt.QtGui.QWidget):
             return
         parent = self._g.parent(paneId)
         siblings = self._g.children(parent)
-        if collapseType==SplittableUI.TearOff.CollapseToSecond:
+        if collapseType == SplittableUI.TearOff.CollapseToSecond:
             if self._g.has_children(siblings[1]):
                 return
         else:
             if self._g.has_children(siblings[0]):
                 return
         self.collapsePane(parent,
-                          toSecond=(collapseType==SplittableUI.TearOff.CollapseToSecond))
+                          toSecond=(collapseType == SplittableUI.TearOff.CollapseToSecond))
 
     def _onHandleMoved(self, paneId, position, orientation, newAmount=None):
         """Called when a handle widget moves. It triggers a recomputation
@@ -820,14 +829,14 @@ class SplittableUI(qt.QtGui.QWidget):
             elif orientation == qt.QtCore.Qt.Vertical:
                 val = float(position.y())
                 topVal = geom.height()
-            newAmount  = val/topVal
+            newAmount = val / topVal
 
         self.__sticky_check(paneId, orientation, newAmount)
         self._g.set_property(paneId, "amount", newAmount)
         self.computeGeoms(paneId)
 
     def _onWidgetMenuRequest(self, point):
-        pt     = self.mapFromGlobal(point)
+        pt = self.mapFromGlobal(point)
         paneId = self.paneAtPos(pt)
         self.widgetMenuRequest.emit(point, paneId)
 
@@ -850,8 +859,6 @@ class SplittableUI(qt.QtGui.QWidget):
         newWid._geomCache[0] = newWid.contentsRect()
         newWid.computeGeoms(0)
         return newWid
-
-
 
     ##############################
     # Qt Event reimplementations #
@@ -879,11 +886,11 @@ class SplittableUI(qt.QtGui.QWidget):
         # paintingVisitor = self.DebugPaintingVisitor(self._g, self._geomCache, painter)
         # self._g.visit_i_breadth_first(paintingVisitor)
 
-
     ###################################################################################
     # Inner classes not meant to be seen by others - Inner classes not meant to be... #
     ###################################################################################
     class DebugPaintingVisitor(object):
+
         def __init__(self, graph, geomCache, painter):
             self.g = graph
             self.geomCache = geomCache
@@ -894,22 +901,22 @@ class SplittableUI(qt.QtGui.QWidget):
                 # ok, no child, so we probably have a widget and our geometry
                 # has already been computed by parent
                 geom = self.geomCache[vid]
-                color = qt.QtGui.QColor.fromHsv(vid*10, 125, 125)
+                color = qt.QtGui.QColor.fromHsv(vid * 10, 125, 125)
                 self.painter.fillRect(geom, color)
                 self.painter.drawText(geom.center(), str(vid))
             return False, False
 
-
     class GeometryComputingVisitor(object):
+
         """A visitor that browses the graph describing
         the partitioning of the UI and computes the geometries
         of the children widgets"""
+
         def __init__(self, graph, geomCache):
             self.g = graph
             self.geomCache = geomCache
 
-
-        def layout_pane(self, geom, vid, widgetSpace = None):
+        def layout_pane(self, geom, vid, widgetSpace=None):
             widget = None
             if self.g.has_property(vid, "widget"):
                 widget = self.g.get_property(vid, "widget")
@@ -919,18 +926,20 @@ class SplittableUI(qt.QtGui.QWidget):
                 widget.resize(widgetGeom.width(), widgetGeom.height())
 
             th = SplittableUI.TearOff.__ideal_height__
-            tearOffB,tearOffT = toffs = self.g.get_property(vid, "tearOffWidgets")
-            if geom.height() <  th or geom.width() < th:
-                if widget: widget.hide()
+            tearOffB, tearOffT = toffs = self.g.get_property(vid, "tearOffWidgets")
+            if geom.height() < th or geom.width() < th:
+                if widget:
+                    widget.hide()
                 for t in toffs:
                     t.hide()
             else:
-                if widget: widget.show()
+                if widget:
+                    widget.show()
                 for t in toffs:
                     t.show()
-            tearOffB.move(geom.left()+1, geom.bottom()+1-th)
-            tearOffT.move(geom.right()-th+1, geom.top()+1)
-            return False, False #don't ignore first or second child
+            tearOffB.move(geom.left() + 1, geom.bottom() + 1 - th)
+            tearOffT.move(geom.right() - th + 1, geom.top() + 1)
+            return False, False  # don't ignore first or second child
 
         def visit(self, vid):
             """
@@ -953,43 +962,43 @@ class SplittableUI(qt.QtGui.QWidget):
                 geom = self.geomCache[vid]
                 return self.layout_pane(geom, vid)
 
-
             fid, sid = self.g.children(vid)
 
             sp = SplittableUI.__spacing__
             containerGeom = self.geomCache[vid]
 
             direction = self.g.get_property(vid, "splitDirection")
-            amount    = self.g.get_property(vid, "amount")
-            sticky    = self.g.get_property(vid, "sticky")
+            amount = self.g.get_property(vid, "amount")
+            sticky = self.g.get_property(vid, "sticky")
 
             # -- The node has children : it doesn't have a widget
             # but it does have a handle that separates the child widgets
             # we must place it accordingly
             handle = self.g.get_property(vid, "handleWidget")
-            hgeom = qt.QtCore.QRect()#handle.geometry()
+            hgeom = qt.QtCore.QRect()  # handle.geometry()
 
-            containerWidth = (containerGeom.width() - sp) if direction == qt.QtCore.Qt.Horizontal else containerGeom.width()
-            containerHeight = (containerGeom.height() - sp) if direction == qt.QtCore.Qt.Vertical else containerGeom.height()
-
+            containerWidth = (
+                containerGeom.width() - sp) if direction == qt.QtCore.Qt.Horizontal else containerGeom.width()
+            containerHeight = (
+                containerGeom.height() - sp) if direction == qt.QtCore.Qt.Vertical else containerGeom.height()
 
             if direction == qt.QtCore.Qt.Horizontal:
                 firstHeight = secondHeight = containerHeight
-                firstWidth  = (containerWidth * amount) if sticky != -1 else 0
-                secondWidth = (containerWidth - firstWidth ) if sticky != 1 else 0
+                firstWidth = (containerWidth * amount) if sticky != -1 else 0
+                secondWidth = (containerWidth - firstWidth) if sticky != 1 else 0
                 firstX, firstY = containerGeom.x(), containerGeom.y()
                 secondX, secondY = firstX + firstWidth + sp, firstY
-                hgeom.moveLeft(firstX++firstWidth)
+                hgeom.moveLeft(firstX + +firstWidth)
                 hgeom.moveTop(firstY)
                 hgeom.setHeight(containerHeight)
                 hgeom.setWidth(sp)
             else:
                 firstWidth = secondWidth = containerWidth
-                firstHeight   = (containerHeight * amount) if sticky != -1 else 0
-                secondHeight  = (containerHeight - firstHeight) if sticky != 1 else 0
+                firstHeight = (containerHeight * amount) if sticky != -1 else 0
+                secondHeight = (containerHeight - firstHeight) if sticky != 1 else 0
                 firstX, firstY = containerGeom.x(), containerGeom.y()
                 secondX, secondY = firstX, firstY + firstHeight + sp
-                hgeom.moveTop(firstY+firstHeight)
+                hgeom.moveTop(firstY + firstHeight)
                 hgeom.moveLeft(firstX)
                 hgeom.setWidth(containerWidth)
                 hgeom.setHeight(sp)
@@ -999,16 +1008,17 @@ class SplittableUI(qt.QtGui.QWidget):
             self.geomCache[fid] = firstGeom
             self.geomCache[sid] = secondGeom
             handle.setGeometry(hgeom)
-            return False, False#don't ignore first or second child
-
+            return False, False  # don't ignore first or second child
 
     class PaneIdFindingVisitor(object):
+
         """Visitor that searches which leaf id has pos in geometry"""
+
         def __init__(self, graph, geomCache, pt):
-            self.g         = graph
+            self.g = graph
             self.geomCache = geomCache
-            self.pt        = pt
-            self.result    = None
+            self.pt = pt
+            self.result = None
 
         def visit(self, vid):
             """
@@ -1028,11 +1038,12 @@ class SplittableUI(qt.QtGui.QWidget):
             ignoreSecond = not secondGeom.contains(self.pt)
             return ignoreFirst, ignoreSecond
 
-
     class InitContainerVisitor(object):
+
         """Visitor that searches which leaf id has pos in geometry"""
+
         def __init__(self, graph, wid):
-            self.g   = graph
+            self.g = graph
             self.wid = wid
 
         def visit(self, vid):
@@ -1049,21 +1060,21 @@ class SplittableUI(qt.QtGui.QWidget):
 
             return False, False
 
-
     class TearOff(qt.QtGui.QWidget, DraggableWidget):
+
         """A widget drawn at top right and bottom left hand corner of each
         SplittableUI pane and that allows the user to split/collapse panes"""
         splitRequest = qt.QtCore.Signal(int, qt.QtCore.Qt.Orientation, float)
         collapseRequest = qt.QtCore.Signal(int, int, int)
 
-        TearUp    = 0 #: The tear direction is upward
-        TearRight = 1 #: The tear direction is to the right
-        TearDown  = 2 #: The tear direction is downward
-        TearLeft  = 3 #: The tear direction is to the left
+        TearUp = 0  # : The tear direction is upward
+        TearRight = 1  # : The tear direction is to the right
+        TearDown = 2  # : The tear direction is downward
+        TearLeft = 3  # : The tear direction is to the left
 
-        CollapseToSecond  = 0 #: Collapse first child to second
-        CollapseToFirst   = 1 #: Collapse second child to first
-        CollapseToForeign = 2 #: Collapse the pane to another that is not sibling
+        CollapseToSecond = 0  # : Collapse first child to second
+        CollapseToFirst = 1  # : Collapse second child to first
+        CollapseToForeign = 2  # : Collapse the pane to another that is not sibling
 
         __ideal_height__ = 10
 
@@ -1080,7 +1091,7 @@ class SplittableUI(qt.QtGui.QWidget):
             DraggableWidget.__init__(self)
             self._g = graph
             self._vid = refVid
-            self._bottom=bottom
+            self._bottom = bottom
             self.setFixedHeight(self.__ideal_height__)
             self.setFixedWidth(self.__ideal_height__)
             self.show()
@@ -1094,30 +1105,30 @@ class SplittableUI(qt.QtGui.QWidget):
             if df.manhattanLength() > 5:
                 dx, dy = abs(df.x()), abs(df.y())
                 direction = None
-                if dx > dy: #horizontal displacement
+                if dx > dy:  # horizontal displacement
                     direction = self.TearLeft if df.x() < 0 else self.TearRight
                 else:
                     direction = self.TearUp if df.y() < 0 else self.TearDown
 
-                isFirstChild   = self._g.node_is_first_child(vid)
+                isFirstChild = self._g.node_is_first_child(vid)
                 parent = self._g.parent(vid)
-                if direction == self.TearUp and self._bottom: #split up
+                if direction == self.TearUp and self._bottom:  # split up
                     self.splitRequest.emit(vid, qt.QtCore.Qt.Vertical, 0.95)
-                elif direction == self.TearRight and self._bottom: #split right
+                elif direction == self.TearRight and self._bottom:  # split right
                     self.splitRequest.emit(vid, qt.QtCore.Qt.Horizontal, 0.05)
-                elif direction == self.TearDown and not self._bottom: #split down
+                elif direction == self.TearDown and not self._bottom:  # split down
                     self.splitRequest.emit(vid, qt.QtCore.Qt.Vertical, 0.05)
-                elif direction == self.TearLeft and not self._bottom: #split left
+                elif direction == self.TearLeft and not self._bottom:  # split left
                     self.splitRequest.emit(vid, qt.QtCore.Qt.Horizontal, 0.95)
                 elif parent is not None:
                     splitDirection = self._g.get_property(parent, "splitDirection")
                     # -- collapse to second --
                     if direction == self.TearDown  and splitDirection == qt.QtCore.Qt.Vertical   and     self._bottom and     isFirstChild or \
-                       direction == self.TearRight and splitDirection == qt.QtCore.Qt.Horizontal and not self._bottom and     isFirstChild:
+                       direction == self.TearRight and splitDirection == qt.QtCore.Qt.Horizontal and not self._bottom and isFirstChild:
                         self.collapseRequest.emit(vid, self.CollapseToSecond, direction)
                     # -- collapse to first --
                     elif direction == self.TearUp   and splitDirection == qt.QtCore.Qt.Vertical   and not self._bottom and not isFirstChild or \
-                         direction == self.TearLeft and splitDirection == qt.QtCore.Qt.Horizontal and     self._bottom and not isFirstChild:
+                            direction == self.TearLeft and splitDirection == qt.QtCore.Qt.Horizontal and self._bottom and not isFirstChild:
                         self.collapseRequest.emit(vid, self.CollapseToFirst, direction)
                     # -- collapse to foreign --
                     else:
@@ -1133,24 +1144,24 @@ class SplittableUI(qt.QtGui.QWidget):
 
             pen = painter.pen()
             if self._hovered:
-                brush   = qt.QtGui.QBrush(qt.QtGui.QColor(120,190,255,200))
-                pen.setColor(qt.QtGui.QColor(255,255,255,255))
+                brush = qt.QtGui.QBrush(qt.QtGui.QColor(120, 190, 255, 200))
+                pen.setColor(qt.QtGui.QColor(255, 255, 255, 255))
             else:
-                brush   = qt.QtGui.QBrush(qt.QtGui.QColor(120,190,255,70))
-                pen.setColor(qt.QtGui.QColor(0,0,0,127))
+                brush = qt.QtGui.QBrush(qt.QtGui.QColor(120, 190, 255, 70))
+                pen.setColor(qt.QtGui.QColor(0, 0, 0, 127))
 
             painter.setBrush(brush)
             painter.setPen(pen)
 
             adj = painter.pen().width()
-            rect = self.contentsRect().adjusted(adj,adj,-adj,-adj)
+            rect = self.contentsRect().adjusted(adj, adj, -adj, -adj)
             if self._bottom:
                 painter.drawConvexPolygon(rect.bottomRight(), rect.bottomLeft(), rect.topLeft())
             else:
                 painter.drawConvexPolygon(rect.topRight(), rect.bottomRight(), rect.topLeft())
 
-
     class SplitterHandle(qt.QtGui.QWidget, DraggableWidget):
+
         """Basically a reimplementation of qt.QtGui.QSplitterHandle.
         The original one needed a reference to a qt.QtGui.QSplitter.
         """
@@ -1167,8 +1178,8 @@ class SplittableUI(qt.QtGui.QWidget):
             """
             qt.QtGui.QWidget.__init__(self, parent)
             DraggableWidget.__init__(self)
-            self._g           = graph
-            self._refVid      = refVid
+            self._g = graph
+            self._refVid = refVid
             self._orientation = orientation
             self._thickness = SplittableUI.__spacing__
             if orientation == qt.QtCore.Qt.Vertical:
@@ -1180,12 +1191,12 @@ class SplittableUI(qt.QtGui.QWidget):
                 self.setCursor(qt.QtCore.Qt.SplitHCursor)
                 dirString = "x1:0, y1:0, x2:1, y2:0,"
 
-            self.setStyleSheet("background-color: "+\
-                               "qlineargradient(spread:pad,"+ dirString + \
-                               "stop:0 rgba(135,135,135,255), " +\
-                               "stop:0.3 rgba(155,155,155,255), " +\
-                               "stop:0.5 rgba(255,255,255,255), " +\
-                               "stop:0.7 rgba(155,155,155,255), " +\
+            self.setStyleSheet("background-color: " +
+                               "qlineargradient(spread:pad," + dirString +
+                               "stop:0 rgba(135,135,135,255), " +
+                               "stop:0.3 rgba(155,155,155,255), " +
+                               "stop:0.5 rgba(255,255,255,255), " +
+                               "stop:0.7 rgba(155,155,155,255), " +
                                "stop:1 rgba(135, 135, 135, 255));")
 
             self.show()
@@ -1198,25 +1209,27 @@ class SplittableUI(qt.QtGui.QWidget):
             else:
                 geom.setX(newPt.x())
             self.handleMoved.emit(self._refVid, geom.topLeft(), self._orientation)
-            return geom, True #DO NOT MODIFY THE GEOMETRY! IT WILL BE DONE BY THE GRAPH UPDATE
+            return geom, True  # DO NOT MODIFY THE GEOMETRY! IT WILL BE DONE BY THE GRAPH UPDATE
 
         def __valid_position(self, pt):
             """PRIVATE: checks if pt is within the parent's geometry and returns a pt that
             lies inside."""
             parentGeom = self.parent()._geomCache[self._refVid]
-            thk        = self._thickness
+            thk = self._thickness
             if self._orientation == qt.QtCore.Qt.Vertical:
-                val  = pt.y()
+                val = pt.y()
                 min_ = parentGeom.top() + thk
                 max_ = parentGeom.bottom()
                 fix = pt.setY
             else:
-                val  = pt.x()
+                val = pt.x()
                 min_ = parentGeom.left() + thk
                 max_ = parentGeom.right()
                 fix = pt.setX
-            if   val < min_: val = min_
-            elif val > max_: val = max_
+            if val < min_:
+                val = min_
+            elif val > max_:
+                val = max_
             fix(val)
             return pt
 
@@ -1237,8 +1250,7 @@ class SplittableUI(qt.QtGui.QWidget):
     ###################################################################################
 
 
-
-#Small testing example
+# Small testing example
 if __name__ == "__main__":
     app = qt.QtGui.QApplication(["Muahaha"])
     mw = qt.QtGui.QMainWindow()
@@ -1246,7 +1258,3 @@ if __name__ == "__main__":
     mw.setCentralWidget(splittable)
     mw.show()
     app.exec_()
-
-
-
-
