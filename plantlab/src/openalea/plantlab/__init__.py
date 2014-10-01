@@ -1,6 +1,7 @@
 
 from openalea.oalab.plugins.applets import PluginApplet
 
+
 class LPyModelGUI(object):
     name = 'LSystem'
     mimetype_data = "text/vnd-lpy"

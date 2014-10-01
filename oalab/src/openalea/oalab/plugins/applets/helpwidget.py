@@ -1,6 +1,7 @@
 
 from openalea.oalab.plugins.applets import PluginApplet
 
+
 class HelpWidget(PluginApplet):
 
     name = 'HelpWidget'

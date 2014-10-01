@@ -18,6 +18,7 @@
 
 from openalea.oalab.plugins.applets import PluginApplet
 
+
 class FileBrowser(PluginApplet):
 
     name = 'FileBrowser'
@@ -36,4 +37,3 @@ class FileBrowser(PluginApplet):
             return
 
         mainwindow.add_applet(applet, self.alias, area='inputs')
-

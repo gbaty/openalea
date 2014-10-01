@@ -100,7 +100,6 @@ For that purpose, we create a Plugin called HelpWidgetPlugin in helper package:
             from mypackage import MyApplet
             return MyApplet
 
-
         def graft(self, **kwds):
             # 1. Ask to mainwindow to place it
             # 2. Fill menus, actions, toolbars, ...
@@ -154,7 +153,9 @@ Details
 """
 from openalea.core.interface import IInterface
 
+
 class IApplet(IInterface):
+
     """
     Autonomous Graphical component
     """
@@ -171,8 +172,8 @@ class IApplet(IInterface):
         pass
 
 
-
 class IPluginApplet(object):
+
     """
     Graphical component displayed in main window.
     Component must respect :class:`~openalea.oalab.plugins.applet.IApplet` interface.

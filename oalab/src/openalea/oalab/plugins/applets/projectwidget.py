@@ -1,6 +1,7 @@
 
 from openalea.oalab.plugins.applets import PluginApplet
 
+
 class ProjectManager(PluginApplet):
 
     name = 'ProjectManager'
@@ -18,6 +19,7 @@ class ProjectManager(PluginApplet):
             return
 
         self._fill_menu(mainwindow, applet)
+
         mainwindow.menu_classic['Project'].addSeparator()
         mainwindow.menu_classic['Project'].addMenu(applet.menu_available_projects)
         mainwindow.menu_classic['Project'].addSeparator()
