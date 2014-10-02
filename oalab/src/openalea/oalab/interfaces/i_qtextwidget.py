@@ -1,4 +1,4 @@
-from openalea.oalab.legacy.catalog.interface import IInterfacefrom openalea.oalab.legacy.catalog
+from openalea.oalab.legacy.catalog.interface import IInterface
 
 class IQTextWidget(IInterface):
     name = 'IQTextWidget' # Unique identifier

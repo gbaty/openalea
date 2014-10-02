@@ -3,7 +3,6 @@ import weakref
 from openalea.vpltk.qt import QtGui, QtCore
 from openalea.oalab.service.applet import new_applet
 from openalea.oalab.gui.splitterui import SplittableUI
-from openalea.oalab.service.applet import get_applets
 from openalea.core.plugin import iter_plugins
 from openalea.oalab.session.session import Session
 
@@ -26,7 +25,6 @@ class AppletContainer(QtGui.QTabWidget):
         self._container_layout.setContentsMargins(0, 0, 0, 0)
 
         for plugin_class in iter_plugins('oalab.applet'):
-            if plugin_class.name in ['VtkViewer', 'OmeroClient', 'LineageViewer', ]:
                 self._applet_plugins.append(plugin_class)
                 self._cb_applets.addItem(plugin_class.alias)
 
@@ -56,7 +54,7 @@ class AppletContainer(QtGui.QTabWidget):
                 widget.show()
             else:
                 plugin = plugin_class()
-                widget = plugin(self)()
+                widget = plugin()()
                 self._applets[plugin_class] = widget
                 self._container_layout.insertWidget(0, widget)
 
