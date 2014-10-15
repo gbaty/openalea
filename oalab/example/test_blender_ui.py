@@ -3,10 +3,11 @@ import weakref
 from openalea.vpltk.qt import QtGui, QtCore
 from openalea.oalab.service.applet import new_applet
 from openalea.oalab.gui.splitterui import SplittableUI
-from openalea.core.plugin import iter_plugins
-from openalea.oalab.session.session import Session
+from openalea.core.plugin.manager import PluginManager
+
 
 class AppletContainer(QtGui.QTabWidget):
+
     def __init__(self, parent=None):
         QtGui.QTabWidget.__init__(self, None)
 #         self._layout = QtGui.QVBoxLayout(self)
@@ -24,9 +25,10 @@ class AppletContainer(QtGui.QTabWidget):
         self._container.setContentsMargins(0, 0, 0, 0)
         self._container_layout.setContentsMargins(0, 0, 0, 0)
 
-        for plugin_class in iter_plugins('oalab.applet'):
-                self._applet_plugins.append(plugin_class)
-                self._cb_applets.addItem(plugin_class.alias)
+        self.pm = PluginManager()
+        for plugin_class in self.pm.plugins('oalab.applet'):
+            self._applet_plugins.append(plugin_class)
+            self._cb_applets.addItem(plugin_class.alias)
 
         self._container_layout.addWidget(self._cb_applets)
 
@@ -53,13 +55,13 @@ class AppletContainer(QtGui.QTabWidget):
                 widget = self._applets[plugin_class]
                 widget.show()
             else:
-                plugin = plugin_class()
-                widget = plugin()()
+                widget = pm.instance('oalab.applet', plugin_class.name)
                 self._applets[plugin_class] = widget
                 self._container_layout.insertWidget(0, widget)
 
 
 class OALabSplittableUi(SplittableUI):
+
     def getPlaceHolder(self):
         return AppletContainer()
 
@@ -71,6 +73,10 @@ class OALabSplittableUi(SplittableUI):
 
 if __name__ == '__main__':
     instance = QtGui.QApplication.instance()
+
+    pm = PluginManager()
+    #pm.debug = True
+
     if instance is None:
         app = QtGui.QApplication([])
     else:
@@ -79,8 +85,6 @@ if __name__ == '__main__':
     l = []
     for i in range(5):
         l.append(QtGui.QLabel(unicode(i)))
-
-
 
     mw = QtGui.QMainWindow()
 
