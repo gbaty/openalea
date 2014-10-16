@@ -6,6 +6,7 @@ class PkgManagerWidget(PluginApplet):
 
     name = 'PkgManagerWidget'
     alias = 'VisualeaPkg'
+    icon = ":/images/resources/openalealogo.png"
 
     def __call__(self):
         # Load and instantiate graphical component that actually provide feature

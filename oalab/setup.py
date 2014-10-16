@@ -125,6 +125,7 @@ setup(
             'Store = openalea.oalab.plugins.applets.store:Store',
             'World = openalea.oalab.plugins.applets.worldwidget:World',
             'Plot2d = openalea.oalab.plugins.applets.plot2d:Plot2dWidget',
+            'ShellWidget = openalea.oalab.plugins.applets.shellwidget:ShellWidget',
         ],
 
         'oalab.qt_control': [
