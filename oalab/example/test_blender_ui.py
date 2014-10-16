@@ -6,58 +6,129 @@ from openalea.oalab.gui.splitterui import SplittableUI
 from openalea.core.plugin.manager import PluginManager
 
 
-class AppletContainer(QtGui.QTabWidget):
+class AppletSelector(QtGui.QWidget):
+
+    appletChanged = QtCore.Signal(str)
+    addTabClicked = QtCore.Signal()
+    removeTabClicked = QtCore.Signal()
 
     def __init__(self, parent=None):
-        QtGui.QTabWidget.__init__(self, None)
-#         self._layout = QtGui.QVBoxLayout(self)
+        QtGui.QWidget.__init__(self)
+        self._layout = QtGui.QHBoxLayout(self)
+
         self._cb_applets = QtGui.QComboBox()
         self._cb_applets.currentIndexChanged.connect(self._on_current_applet_changed)
 
-        self._applets = {}
+        self._pb_new_tab = QtGui.QPushButton('+')
+        self._pb_new_tab.clicked.connect(self.addTabClicked)
+
         self._applet_plugins = []
-
-        self._container = QtGui.QWidget()
-        self._container_layout = QtGui.QVBoxLayout(self._container)
-
-#         self.setContentsMargins(0, 0, 0, 0)
-#         self._layout.setContentsMargins(0, 0, 0, 0)
-        self._container.setContentsMargins(0, 0, 0, 0)
-        self._container_layout.setContentsMargins(0, 0, 0, 0)
 
         self.pm = PluginManager()
         for plugin_class in self.pm.plugins('oalab.applet'):
             self._applet_plugins.append(plugin_class)
             self._cb_applets.addItem(plugin_class.alias)
 
-        self._container_layout.addWidget(self._cb_applets)
-
-        self.addTab(self._container, 'Tab1')
-
-#     def tabInserted(self, index):
-#         self.tabBar().setVisible(self.count() > 1)
-#
-#     def tabRemoved(self, index):
-#         self.tabBar().setVisible(self.count() > 1)
-
-    def add_applet(self, widget_class, name, *args, **kwds):
-        print 'add_applet', name, widget_class
+        self._layout.addWidget(self._cb_applets)
+        self._layout.addWidget(self._pb_new_tab)
 
     def _on_current_applet_changed(self, idx):
+        applet_name = self.applet(idx)
+        if applet_name:
+            self.appletChanged.emit(applet_name)
+
+    def applet(self, idx):
         if 0 <= idx <= len(self._applet_plugins):
             plugin_class = self._applet_plugins[idx]
+            return plugin_class.name
+        else:
+            return None
 
-            # clear view
-            for widget in self._applets.values():
-                widget.hide()
+    def currentApplet(self):
+        return self.applet(self._cb_applets.currentIndex())
 
-            if plugin_class in self._applets:
-                widget = self._applets[plugin_class]
-                widget.show()
-            else:
-                widget = pm.instance('oalab.applet', plugin_class.name)
-                self._applets[plugin_class] = widget
-                self._container_layout.insertWidget(0, widget)
+    def setCurrentApplet(self, name):
+        for i, plugin_class in enumerate(self._applet_plugins):
+            if plugin_class.name == name:
+                self._cb_applets.setCurrentIndex(i)
+                break
+
+
+class AppletTabWidget(QtGui.QTabWidget):
+
+    def __init__(self):
+        QtGui.QTabWidget.__init__(self)
+        self._applets = {}
+        self._name = {}
+        self._current = None
+
+    def tabInserted(self, index):
+        self.tabBar().setVisible(self.count() > 1)
+
+    def tabRemoved(self, index):
+        self.tabBar().setVisible(self.count() > 1)
+
+    def new_tab(self):
+        widget = QtGui.QWidget()
+        layout = QtGui.QVBoxLayout(widget)
+        self.addTab(widget, 'TAB')
+
+    def remove_tab(self):
+        pass
+
+    def set_applet(self, name):
+        # clear view
+        for applet in self._applets.values():
+            applet.hide()
+
+        if name in self._applets:
+            applet = self._applets[name]
+            applet.show()
+            self._name[self.currentIndex()] = name
+        else:
+            applet = pm.new('oalab.applet', name)
+            self._applets[name] = applet
+            tab = self.currentWidget()
+            tab.layout().addWidget(applet)
+            self._name[self.currentIndex()] = name
+
+    def currentApplet(self):
+        try:
+            return self._name[self.currentIndex()]
+        except KeyError:
+            return None
+
+
+class AppletContainer(QtGui.QWidget):
+
+    def __init__(self, parent=None):
+        QtGui.QWidget.__init__(self, None)
+
+        self._layout = QtGui.QVBoxLayout(self)
+        self._layout.setContentsMargins(0, 0, 0, 0)
+        self.setContentsMargins(0, 0, 0, 0)
+
+        self._tabwidget = AppletTabWidget()
+        self._tabwidget.currentChanged.connect(self._on_tab_changed)
+
+        self._applet_selector = AppletSelector()
+        self._applet_selector.appletChanged.connect(self._tabwidget.set_applet)
+        self._applet_selector.addTabClicked.connect(self._tabwidget.new_tab)
+        self._applet_selector.removeTabClicked.connect(self._tabwidget.remove_tab)
+
+        self._layout.addWidget(self._tabwidget)
+        self._layout.addWidget(self._applet_selector)
+
+        self._tabwidget.new_tab()
+
+        applet_name = self._applet_selector.currentApplet()
+        if applet_name:
+            self._tabwidget.set_applet(applet_name)
+
+    def _on_tab_changed(self, idx):
+        applet_name = self._tabwidget.currentApplet()
+        if applet_name:
+            self._applet_selector.setCurrentApplet(applet_name)
 
 
 class OALabSplittableUi(SplittableUI):
