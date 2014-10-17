@@ -726,7 +726,6 @@ class SplittableUI(qt.QtGui.QWidget):
 
         if not kwargs.get("noTearOffs", False):
             self._install_tearOffs(paneId)
-        print widget, oldWidget
         return oldWidget
 
     def _install_tearOffs(self, paneId):
