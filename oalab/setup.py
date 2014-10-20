@@ -126,6 +126,7 @@ setup(
             'World = openalea.oalab.plugins.applets.worldwidget:World',
             'Plot2d = openalea.oalab.plugins.applets.plot2d:Plot2dWidget',
             'ShellWidget = openalea.oalab.plugins.applets.shellwidget:ShellWidget',
+            'PanedMenu = openalea.oalab.plugins.applets.panedmenu:PanedMenu',
         ],
 
         'oalab.qt_control': [

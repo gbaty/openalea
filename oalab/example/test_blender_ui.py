@@ -76,7 +76,6 @@ class AppletTabWidget(QtGui.QTabWidget):
     def __init__(self):
         QtGui.QTabWidget.__init__(self)
         self.setContentsMargins(0, 0, 0, 0)
-        self.setTabsClosable(True)
         self.tabCloseRequested.connect(self.remove_tab)
 
         self._applets = {}
@@ -88,6 +87,9 @@ class AppletTabWidget(QtGui.QTabWidget):
 
     def tabRemoved(self, index):
         self.tabBar().setVisible(self.count() > 1)
+
+    def set_edit_mode(self, mode=True):
+        self.setTabsClosable(mode)
 
     def new_tab(self):
         widget = QtGui.QWidget()
@@ -120,6 +122,8 @@ class AppletTabWidget(QtGui.QTabWidget):
             applet.show()
         else:
             applet = pm.new('oalab.applet', name)
+            if applet is None:
+                return
             tab = self.currentWidget()
             tab.layout().addWidget(applet)
             self._applets.setdefault(idx, {})[name] = applet
@@ -180,6 +184,13 @@ class AppletContainer(QtGui.QWidget):
         applet_name = self._tabwidget.currentApplet()
         if applet_name:
             self._applet_selector.setCurrentApplet(applet_name)
+
+    def set_edit_mode(self, mode=True):
+        if mode:
+            self._applet_selector.show()
+        else:
+            self._applet_selector.hide()
+        self._tabwidget.set_edit_mode(mode)
 
     def contextMenuEvent(self, event):
         self.menu.exec_(event.globalPos())
@@ -318,41 +329,101 @@ class OALabSplittableUi(SplittableUI):
         newWid.computeGeoms(0)
         return newWid
 
+
+class OALabMainWin(QtGui.QMainWindow):
+
+    def __init__(self, layout=None):
+        QtGui.QMainWindow.__init__(self)
+
+        self.pm = PluginManager()
+
+        menu_names = ('Project', 'Edit', 'Viewer', 'Help')
+
+        # Classic menu
+        self.menu_classic = {}
+        menubar = QtGui.QMenuBar()
+
+        for menu_name in menu_names:
+            self.menu_classic[menu_name] = menubar.addMenu(menu_name)
+
+        self.setMenuBar(menubar)
+
+        if layout is None:
+            container = AppletContainer()
+            self.splittable = OALabSplittableUi(parent=self)
+            self.splittable.setContentAt(0, container)
+        else:
+            self.splittable = OALabSplittableUi.fromString(str(oalab_conf))
+
+        self.setCentralWidget(self.splittable)
+
+    def set_edit_mode(self, mode=True):
+        for widget in self.splittable.getAllContents():
+            if hasattr(widget, 'set_edit_mode'):
+                widget.set_edit_mode(mode)
+
+    def initialize(self):
+
+        for instance in self.pm.instances('oalab.applet'):
+            if hasattr(instance, 'initialize'):
+                instance.initialize()
+
+        menus = pm.instantiated('oalab.applet', 'PanedMenu')
+        if menus:
+            self.menu = menus[0]
+            for plugin_class in self.pm.plugins('oalab.applet'):
+                # TODO: support name properly (class name or name attribute)
+                print plugin_class
+                for instance in self.pm.instances('oalab.applet', plugin_class.name):
+                    if hasattr(plugin_class, 'graft'):
+                        plugin_class().graft(oa_mainwin=self, applet=instance)
+
+    def add_action_to_existing_menu(self, action, menu_name, sub_menu_name):
+        """
+        Permit to add in a classic menubar the "action" in the menu "menu_name"
+        in the sub_menu "sub_menu_name"
+        """
+        menubar = self.menuBar()
+        if menu_name in self.menu_classic:
+            menu = self.menu_classic[menu_name]
+        else:
+            menu = self.menu_classic[menu_name] = menubar.addMenu(menu_name)
+
+        menu.addAction(action)
+
+    def add_applet(self, *args, **kwds):
+        pass
+
+
 if __name__ == '__main__':
     instance = QtGui.QApplication.instance()
 
     pm = PluginManager()
-    #pm.debug = True
 
     if instance is None:
         app = QtGui.QApplication([])
     else:
         app = instance
 
-    l = []
-    for i in range(5):
-        l.append(QtGui.QLabel(unicode(i)))
+    oalab_conf = ({0: [1, 2], 2: [3, 4], 3: [5, 6], 6: [7, 8]},
+                  {0: None, 1: 0, 2: 0, 3: 2, 4: 2, 5: 3, 6: 3, 7: 6, 8: 6},
+                  {0: {'amount': 0.1, 'splitDirection': 2},
+                   1: {'widget': ['PanedMenu']},
+                   2: {'amount': 0.75, 'splitDirection': 2},
+                   3: {'amount': 0.2, 'splitDirection': 1},
+                   4: {'widget': ['Shell', u'Logger', u'HistoryWidget']},
+                   5: {'widget': ['ProjectManager', 'PkgManagerWidget', 'ControlManager', 'World']},
+                   6: {'amount': 0.6, 'splitDirection': 1},
+                   7: {'widget': ['EditorManager']},
+                   8: {'widget': ['Viewer3D', 'VtkViewer', 'HelpWidget']}})
 
-    mw = QtGui.QMainWindow()
+    mw = OALabMainWin(layout=oalab_conf)
 
-    container = AppletContainer()
-    s = ({0: [1, 2], 2: [3, 4], 3: [5, 6]},
-         {0: None, 1: 0, 2: 0, 3: 2, 4: 2, 5: 3, 6: 3},
-         {0: {'amount': 0.27784653465346537, 'splitDirection': 1},
-          1: {'widget': ['FileBrowser']},
-          2: {'amount': 0.6076421248835042, 'splitDirection': 1},
-          3: {'amount': 0.7133258678611423, 'splitDirection': 2},
-          4: {'widget': ['Viewer3D']},
-          5: {'widget': ['HelpWidget']},
-          6: {'widget': ['Logger', 'HelpWidget']}})
-    splittable = OALabSplittableUi.fromString(str(s))
-#     splittable = OALabSplittableUi(parent=mw)
-#     splittable.setContentAt(0, container)
-    mw.setCentralWidget(splittable)
-    mw.resize(800, 600)
+    mw.resize(1024, 768)
     mw.show()
+
+    mw.set_edit_mode(False)
+    mw.initialize()
 
     if instance is None:
         app.exec_()
-
-    print splittable.toString()

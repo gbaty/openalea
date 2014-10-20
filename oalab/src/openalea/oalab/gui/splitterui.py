@@ -655,6 +655,14 @@ class SplittableUI(qt.QtGui.QWidget):
             wid = self._g.get_property(paneId, "widget")
             return wid
 
+    def getAllContents(self, reparent=None):
+        widgets = []
+        for vid in self._g._properties.iterkeys():
+            wid = self.getContentAt(vid)
+            if wid is not None:
+                widgets.append(wid)
+        return widgets
+
     def takeContentAt(self, paneId, reparent=None):
         if self._g.has_property(paneId, "widget"):
             wid = self._g.get_property(paneId, "widget")
