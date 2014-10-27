@@ -3,7 +3,7 @@ import weakref
 from openalea.vpltk.qt import QtGui, QtCore
 from openalea.oalab.service.applet import new_applet
 from openalea.oalab.gui.splitterui import SplittableUI, BinaryTree
-from openalea.core.plugin.manager import PluginManager
+from openalea.core.service.plugin import new_plugin_instance, plugin_instances, plugin_class, plugins
 from openalea.oalab.gui.utils import qicon
 import openalea.core
 
@@ -30,9 +30,8 @@ class AppletSelector(QtGui.QWidget):
         self._cb_applets = QtGui.QComboBox()
         self._applet_plugins = []
 
-        self.pm = PluginManager()
         self._cb_applets.addItem('Select applet')
-        for plugin_class in self.pm.plugins('oalab.applet'):
+        for plugin_class in plugins('oalab.applet'):
             self._applet_plugins.append(plugin_class)
             self._cb_applets.addItem(obj_icon(plugin_class), plugin_class.alias)
 
@@ -121,7 +120,7 @@ class AppletTabWidget(QtGui.QTabWidget):
             applet = self._applets[idx][name]
             applet.show()
         else:
-            applet = pm.new('oalab.applet', name)
+            applet = new_plugin_instance('oalab.applet', name)
             if applet is None:
                 return
             tab = self.currentWidget()
@@ -129,9 +128,9 @@ class AppletTabWidget(QtGui.QTabWidget):
             self._applets.setdefault(idx, {})[name] = applet
             self._name[idx] = name
 
-        plugin_class = pm.plugin('oalab.applet', name)
-        self.setTabText(idx, plugin_class.alias)
-        self.setTabIcon(idx, obj_icon(plugin_class))
+        _plugin_class = plugin_class('oalab.applet', name)
+        self.setTabText(idx, _plugin_class.alias)
+        self.setTabIcon(idx, obj_icon(_plugin_class))
 
     def currentApplet(self):
         try:
@@ -335,8 +334,6 @@ class OALabMainWin(QtGui.QMainWindow):
     def __init__(self, layout=None):
         QtGui.QMainWindow.__init__(self)
 
-        self.pm = PluginManager()
-
         menu_names = ('Project', 'Edit', 'Viewer', 'Help')
 
         # Classic menu
@@ -364,11 +361,11 @@ class OALabMainWin(QtGui.QMainWindow):
 
     def initialize(self):
 
-        for instance in self.pm.instances('oalab.applet'):
+        for instance in plugin_instances('oalab.applet'):
             if hasattr(instance, 'initialize'):
                 instance.initialize()
 
-        menus = pm.instantiated('oalab.applet', 'PanedMenu')
+        menus = plugin_instances('oalab.applet', 'PanedMenu')
         if menus:
             self.menu = menus[0]
             for plugin_class in self.pm.plugins('oalab.applet'):
@@ -397,8 +394,6 @@ class OALabMainWin(QtGui.QMainWindow):
 
 if __name__ == '__main__':
     instance = QtGui.QApplication.instance()
-
-    pm = PluginManager()
 
     if instance is None:
         app = QtGui.QApplication([])
