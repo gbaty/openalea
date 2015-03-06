@@ -18,15 +18,10 @@
 #
 ###############################################################################
 
-from openalea.core.path import path as Path
+
+class ErrorDbNotReachable(Exception):
+    pass
 
 
-def get(uri, path=None, force=False):
-    """
-    If path is specified, save data to path if not yet exists.
-    """
-    protocol, uri = uri.split('://')
-    from openalea.core.service.plugin import plugin_instance
-    db = plugin_instance('oalab.db', protocol)
-    if db:
-        return db.get(uri, path, force)
+class ErrorDbDatoDoNotExists(Exception):
+    pass
